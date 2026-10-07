@@ -1,0 +1,30 @@
+{
+ "date": "2026-08-17",
+ "duration": "31:47",
+ "hardest": "V+",
+ "routes": [
+  {
+   "grade": null,
+   "height": 4.8,
+   "hr": 125,
+   "rope": null,
+   "secs": 92
+  },
+  {
+   "grade": null,
+   "height": 14.4,
+   "hr": 120,
+   "rope": null,
+   "secs": 382
+  },
+  {
+   "grade": null,
+   "height": 15.1,
+   "hr": 120,
+   "rope": null,
+   "secs": 433
+  }
+ ],
+ "source": "coros",
+ "start": 1786990485
+}

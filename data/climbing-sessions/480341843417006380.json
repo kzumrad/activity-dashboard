@@ -1,0 +1,37 @@
+{
+ "date": "2026-09-14",
+ "duration": "28:29",
+ "hardest": "VI+",
+ "routes": [
+  {
+   "grade": null,
+   "height": 15.7,
+   "hr": 110,
+   "rope": null,
+   "secs": 295
+  },
+  {
+   "grade": null,
+   "height": 14.7,
+   "hr": 115,
+   "rope": null,
+   "secs": 324
+  },
+  {
+   "grade": null,
+   "height": 15.3,
+   "hr": 112,
+   "rope": null,
+   "secs": 411
+  },
+  {
+   "grade": null,
+   "height": 15.5,
+   "hr": 115,
+   "rope": null,
+   "secs": 347
+  }
+ ],
+ "source": "coros",
+ "start": 1789407823
+}

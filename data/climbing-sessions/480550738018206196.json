@@ -1,0 +1,37 @@
+{
+ "date": "2026-09-23",
+ "duration": "35:25",
+ "hardest": "VI+",
+ "routes": [
+  {
+   "grade": "VI",
+   "height": 15.6,
+   "hr": 109,
+   "rope": "toprope",
+   "secs": 335
+  },
+  {
+   "grade": "V",
+   "height": 15.1,
+   "hr": 109,
+   "rope": "lead",
+   "secs": 382
+  },
+  {
+   "grade": "VI+",
+   "height": 17.4,
+   "hr": 124,
+   "rope": "toprope",
+   "secs": 431
+  },
+  {
+   "grade": "VI-",
+   "height": 13.4,
+   "hr": 115,
+   "rope": "lead",
+   "secs": 357
+  }
+ ],
+ "source": "coros",
+ "start": 1790185656
+}
