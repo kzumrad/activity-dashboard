@@ -2,6 +2,8 @@
 
 Dashboard: https://claude.ai/artifact/UUhT8epo8bSEZUvUMwhe35 (tabs: Overview, Climbing, Hiking, Walking (steps goal + walks), Cycling)
 
+Repository: https://github.com/kzumrad/activity-dashboard (private). Every dashboard change and every sync is committed there, with the page database exported to `data/`.
+
 ## Data
 - Source: COROS watch (APEX 4) via the COROS connector. History starts 5 Aug 2026.
 - Page database: `feeds/activities` holds all non-climbing activities (one doc, `items` array); `sessions/<labelId>` holds each climbing session with per-route height, time, HR, grade and rope style; `feeds/steps` holds daily steps (`days` array of {d, steps}) and the step `goal` (10,000).
