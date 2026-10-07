@@ -109,6 +109,27 @@ section{display:flex;flex-direction:column;gap:12px}
 .mon-strip i{width:7px;height:14px;border-radius:2px;background:var(--c-walk)}
 .mon-strip i.miss{background:var(--bad);opacity:.8}
 
+/* overview summary */
+.ovsum{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:8px}
+@media (max-width:600px){.ovsum{grid-template-columns:1fr}}
+.ovdays,.ovmix{padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ovd-n{font:800 48px/1 var(--display);font-stretch:95%}
+.ovd-n small{font:500 14px var(--body);color:var(--muted);margin-left:6px}
+.ovdays .delta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+.ovd-strip{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px;margin-top:4px}
+.ovd-strip i{aspect-ratio:1 / 1;border-radius:3px;background:var(--bg);border:1px solid var(--line)}
+.ovd-strip i.on{border-color:transparent}
+.ovd-cap{display:flex;justify-content:space-between;font:400 11px var(--mono);color:var(--muted)}
+.ovmix-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.ovmix-h .seg button{padding:5px 9px;font-size:12px}
+.ovmix-b{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.ovmix-b svg{flex:0 0 auto}
+.mixleg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;flex:1 1 150px;min-width:0}
+.mixleg li{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px}
+.mixleg li i{width:10px;height:10px;border-radius:3px}
+.mixleg b{font:700 16px var(--display);font-variant-numeric:tabular-nums}
+.mixleg small{display:block;font:400 11.5px var(--mono);color:var(--muted)}
+
 /* category cards */
 .cats{display:flex;flex-direction:column;gap:8px}
 details.cat{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
@@ -247,12 +268,23 @@ select:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid 
   <div class="tab" id="p-overview" role="tabpanel" aria-labelledby="t-overview">
     <section>
       <div><h2>Last 4 weeks</h2><p class="sub" id="ovRange"></p></div>
-      <dl class="stats panel">
-        <div><dt>Active time</dt><dd class="num" id="ovTime">–</dd><div class="delta" id="ovTimeD"></div></div>
-        <div><dt>Activities</dt><dd class="num" id="ovCount">–</dd><div class="delta" id="ovCountD"></div></div>
-        <div><dt>Distance</dt><dd class="num" id="ovKm">–</dd><div class="delta" id="ovKmD"></div></div>
-        <div><dt>Active days</dt><dd class="num" id="ovDays">–</dd><div class="delta">of 28</div></div>
-      </dl>
+      <div class="ovsum">
+        <div class="panel ovdays">
+          <div class="eyebrow">Active days</div>
+          <div class="ovd-n num" id="ovDays">–</div>
+          <div class="delta" id="ovDaysD"></div>
+          <div class="ovd-strip" id="ovStrip" aria-hidden="true"></div>
+          <div class="ovd-cap"><span id="ovStripFrom"></span><span>today</span></div>
+        </div>
+        <div class="panel ovmix">
+          <div class="ovmix-h"><div class="eyebrow">Activity mix</div>
+            <div class="seg" role="group" aria-label="Measure the mix by"><button type="button" class="tr" id="mixCount" aria-pressed="true">Activities</button><button type="button" class="tr" id="mixTime" aria-pressed="false">Time</button></div></div>
+          <div class="ovmix-b">
+            <svg id="mixDonut" viewBox="0 0 120 120" width="132" height="132" role="img" aria-label="Share of each activity type"></svg>
+            <ul class="mixleg" id="mixLeg"></ul>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section>
@@ -565,13 +597,16 @@ function renderOverview(){
   const from=addDays(TODAY,-27), pFrom=addDays(TODAY,-55), pTo=addDays(TODAY,-28);
   const cur=all.filter(a=>a.d>=from&&a.d<=TODAY), prev=all.filter(a=>a.d>=pFrom&&a.d<=pTo);
   document.getElementById("ovRange").textContent=`${fmtShort(from)} – ${fmtShort(TODAY)}`;
-  document.getElementById("ovTime").innerHTML=`${(sum(cur,a=>a.sec)/3600).toFixed(1)}<small>h</small>`;
-  document.getElementById("ovTimeD").innerHTML=deltaTxt(sum(cur,a=>a.sec),sum(prev,a=>a.sec));
-  document.getElementById("ovCount").textContent=cur.length;
-  document.getElementById("ovCountD").innerHTML=deltaTxt(cur.length,prev.length);
-  document.getElementById("ovKm").innerHTML=`${sum(cur,a=>a.km).toFixed(0)}<small>km</small>`;
-  document.getElementById("ovKmD").innerHTML=deltaTxt(sum(cur,a=>a.km),sum(prev,a=>a.km));
-  document.getElementById("ovDays").textContent=new Set(cur.map(a=>a.d)).size;
+  const dSet=new Set(cur.map(a=>a.d)),pdays=new Set(prev.map(a=>a.d)).size;
+  document.getElementById("ovDays").innerHTML=`${dSet.size}<small>of 28 days</small>`;
+  document.getElementById("ovDaysD").innerHTML=deltaTxt(dSet.size,pdays);
+  const byDay={};cur.forEach(a=>(byDay[a.d]=byDay[a.d]||new Set()).add(group(a.s)));
+  let strip="";for(let i=27;i>=0;i--){const d=addDays(TODAY,-i),gs=byDay[d]?[...byDay[d]]:[];
+    const bg=gs.length===1?SPORT[gs[0]].col:gs.length?`linear-gradient(135deg,${gs.map((g,j)=>`${SPORT[g].col} ${j/gs.length*100}% ${(j+1)/gs.length*100}%`).join(",")})`:"";
+    strip+=`<i class="${gs.length?"on":""}" ${bg?`style="background:${bg}"`:""} title="${fmtShort(d)}${gs.length?": "+gs.map(g=>SPORT[g].name).join(", "):""}"></i>`}
+  document.getElementById("ovStrip").innerHTML=strip;
+  document.getElementById("ovStripFrom").textContent=fmtShort(from);
+  ovCur=cur;renderMix();
 
   const present=["climb","hike","walk","bike","other"].filter(s=>all.some(a=>group(a.s)===s));
   document.getElementById("ovLegend").innerHTML=present.map(s=>`<span><i class="sw" style="background:${SPORT[s].col}"></i>${SPORT[s].name}</span>`).join("");
@@ -741,6 +776,30 @@ document.getElementById("stScroll").addEventListener("keydown",e=>{
   const n=(stSelIdx??stDays.length-1)+(e.key==="ArrowRight"?1:-1);if(n<0||n>=stDays.length)return;selectStepDay(n);
   const sc=document.getElementById("stScroll"),x=n*22;if(x<sc.scrollLeft||x>sc.scrollLeft+sc.clientWidth-22)sc.scrollLeft=x-sc.clientWidth/2;
 });
+
+/* ====== activity mix donut ====== */
+let ovCur=[],mixBy="count";
+try{const v=localStorage.getItem("mixBy");if(v==="time"||v==="count")mixBy=v}catch(_){}
+function renderMix(){
+  document.getElementById("mixCount").setAttribute("aria-pressed",mixBy==="count");
+  document.getElementById("mixTime").setAttribute("aria-pressed",mixBy==="time");
+  const val=a=>mixBy==="count"?1:a.sec;
+  const tot={};ovCur.forEach(a=>{const g=group(a.s);tot[g]=(tot[g]||0)+val(a)});
+  const total=Object.values(tot).reduce((a,b)=>a+b,0);
+  const rows=Object.entries(tot).sort((a,b)=>b[1]-a[1]);
+  const svg=document.getElementById("mixDonut"),R=46,C=2*Math.PI*R;
+  let off=0,h=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--line)" stroke-width="18"/>`;
+  rows.forEach(([g,v])=>{const len=total?v/total*C:0;
+    h+=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${SPORT[g].col}" stroke-width="18" stroke-dasharray="${Math.max(0,len-1.5)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"><title>${SPORT[g].name}: ${Math.round(v/total*100)}%</title></circle>`;off+=len});
+  h+=`<text x="60" y="58" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="800" font-size="22" fill="var(--fg)">${mixBy==="count"?ovCur.length:Math.round(total/3600)+"h"}</text><text x="60" y="74" text-anchor="middle" font-family="${MONO}" font-size="9.5" fill="var(--muted)">${mixBy==="count"?"activities":"active"}</text>`;
+  svg.innerHTML=h;
+  // percentages that add up to 100
+  const raw=rows.map(([g,v])=>total?v/total*100:0),fl=raw.map(Math.floor);let rest=100-fl.reduce((a,b)=>a+b,0);
+  raw.map((r,i)=>[r-fl[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([_,i])=>{if(rest>0&&total){fl[i]++;rest--}});
+  document.getElementById("mixLeg").innerHTML=rows.map(([g,v],i)=>`<li><i style="background:${SPORT[g].col}"></i><span>${SPORT[g].name}<small>${mixBy==="count"?`${v} ${v===1?"activity":"activities"}`:dur(v)}</small></span><b>${fl[i]}%</b></li>`).join("");
+}
+document.getElementById("mixCount").onclick=()=>{mixBy="count";try{localStorage.setItem("mixBy",mixBy)}catch(_){};renderMix()};
+document.getElementById("mixTime").onclick=()=>{mixBy="time";try{localStorage.setItem("mixBy",mixBy)}catch(_){};renderMix()};
 
 /* ====== category cards ====== */
 function catTotals(items,g){
