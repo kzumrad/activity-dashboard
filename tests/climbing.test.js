@@ -3,13 +3,22 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { cleanRoutes, dayState, heroStats, label, manualSession, sessHardest, validId } from "../lib/climbing.js";
+import { GRADES, cleanRoutes, dayState, heroStats, label, manualSession, sessHardest, validId } from "../lib/climbing.js";
 import { deleteSessionFile, loadSessions, readSession, saveSession } from "../lib/data-files.js";
 
-test("grades convert between scales", () => {
-  assert.equal(label("VI+", "uiaa"), "VI+");
-  assert.equal(label("VI+", "french"), "6a+");
-  assert.equal(label("VI+", "yds"), "5.10c");
+test("grades convert between scales as in Wikipedia's comparison table", () => {
+  // Rows of https://en.wikipedia.org/wiki/Grade_(climbing)#Free_climbing_comparison: UIAA -> [French, YDS]
+  const wikipedia = {
+    "IV": ["4a", "5.4"], "IV+": ["4b", "5.5"], "V-": ["4b", "5.5"], "V": ["4c", "5.6"], "V+": ["5a", "5.7"],
+    "VI-": ["5b", "5.8"], "VI": ["5c", "5.9"], "VI+": ["6a", "5.10a"], "VII-": ["6a+", "5.10b"], "VII": ["6b", "5.10c"],
+    "VII+": ["6b+", "5.10d"], "VIII-": ["6c/6c+", "5.11b"], "VIII": ["7a", "5.11d"], "VIII+": ["7a+", "5.12a"],
+  };
+  assert.deepEqual(Object.keys(wikipedia), GRADES, "every UIAA grade is covered, in order");
+  for (const [uiaa, [french, yds]] of Object.entries(wikipedia)) {
+    assert.equal(label(uiaa, "uiaa"), uiaa);
+    assert.equal(label(uiaa, "french"), french, `${uiaa} in French`);
+    assert.equal(label(uiaa, "yds"), yds, `${uiaa} in YDS`);
+  }
   assert.equal(label("", "french"), "–");
 });
 

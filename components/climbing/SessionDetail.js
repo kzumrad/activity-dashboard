@@ -48,7 +48,8 @@ function Session({ s, scale, onRoutes, onDelete }) {
             <div className="r-info"><b>Route {i + 1}</b><div>{info || "added by hand"}</div></div>
             <select aria-label={`Grade of route ${i + 1}`} value={r.grade || ""} onChange={(e) => update(i, { grade: e.target.value || null })}>
               <option value="">Grade</option>
-              {GRADES.map((g) => <option key={g} value={g}>{label(g, scale)}</option>)}
+              {/* Outside UIAA, show the UIAA grade too: it's what's saved, and two UIAA grades can share a French one. */}
+              {GRADES.map((g) => <option key={g} value={g}>{scale === "uiaa" ? g : `${label(g, scale)} (${g})`}</option>)}
             </select>
             <span className="seg" role="group" aria-label={`Rope style of route ${i + 1}`}>
               {[["lead", "Lead", "lead"], ["toprope", "Top rope", "tr"]].map(([v, text, cls]) => (
