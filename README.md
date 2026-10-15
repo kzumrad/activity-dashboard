@@ -1,8 +1,20 @@
 # Activity Dashboard
 
-A personal activity dashboard built from COROS watch data (APEX 4), published as a claude.ai artifact.
+A personal activity dashboard built from COROS watch data (APEX 4).
 
-Live page: https://claude.ai/artifact/UUhT8epo8bSEZUvUMwhe35 (private)
+## Run it on your computer
+
+You need [Node.js](https://nodejs.org) (version 20 or later).
+
+```bash
+npm install
+npm run dev
+```
+
+Then open http://localhost:3000.
+
+- `npm test` checks the calculations (weeks, trips, steps streaks, grades) and the data files.
+- `npm run build` runs the tests and builds the app.
 
 ## Tabs
 - **Overview**: last 4 weeks summary with comparisons, activity calendar colored by sport, weekly active hours, per-activity totals with weekly breakdowns.
@@ -11,16 +23,23 @@ Live page: https://claude.ai/artifact/UUhT8epo8bSEZUvUMwhe35 (private)
 - **Walking**: daily steps vs the 10,000 goal (streaks, scrollable history, days below goal by month) and recorded walks.
 - **Cycling**: rides, weekly distance (scrollable), where you ride.
 
-## Repository layout
+## Where the data lives
+In the JSON files in `data/`, in this repository. Nothing is sent to a server.
+
+- New activities come in when you ask Claude to **sync your activities**: it reads your watch through the COROS connector and updates the files. See [docs/sync-workflow.md](docs/sync-workflow.md).
+- Grades you log on the Climbing tab are saved into that session's file in `data/climbing-sessions/`. Commit them to keep them.
+
+The app is meant to run on your own computer: the data includes places and heart rate, so it isn't published online.
+The older one-page version is still at https://claude.ai/artifact/UUhT8epo8bSEZUvUMwhe35 (private), but it no longer receives syncs.
+
+## How the code is organised
+
 | Path | What it is |
 | --- | --- |
-| `index.html` | The dashboard page, exactly as published. |
-| `data/activities.json` | Backup of all non-climbing activities (page database doc `feeds/activities`). |
-| `data/steps.json` | Backup of daily steps and the step goal (`feeds/steps`). |
-| `data/climbing-sessions/<id>.json` | Backup of each climbing session with its route log (`sessions/<id>`). |
+| `app/` | One page per tab (`page.js` is Overview; `climbing/`, `hiking/`, `walking/`, `cycling/`), the shared layout, `globals.css` (the only style file) and `actions.js` (saving the climbing log). |
+| `components/` | The screens: a folder per tab, plus `charts/` (bar charts, scrollable history, month calendar) and shared parts. |
+| `lib/` | Calculations with no screen code, so they can be tested: `activities.js`, `steps.js`, `climbing.js`, `dates.js`, and `data-files.js` (reading and writing `data/`). |
+| `data/` | The dashboard's data (see above). |
+| `tests/` | Checks for everything in `lib/`. |
 | `docs/sync-workflow.md` | How syncing from COROS works, including the training-note convention for climbing grades. |
-
-## How it runs
-The page stores its data in the artifact's own database, not in this repo. The files in `data/` are backups taken at each commit, so the history of the route log and activities is kept here too.
-
-The page only renders inside claude.ai (it reads its data through the artifact runtime). Opening `index.html` locally shows the layout with a "data isn't available" message.
+| `CHANGELOG.md` | What changed in each version. |
