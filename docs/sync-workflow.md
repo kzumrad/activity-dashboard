@@ -1,13 +1,20 @@
 # Activity Dashboard: sync workflow
 
-Dashboard: https://claude.ai/artifact/UUhT8epo8bSEZUvUMwhe35 (tabs: Overview, Climbing, Hiking, Walking (steps goal + walks), Cycling)
+Dashboard: a Next.js app in this repository, run on your computer with `npm run dev` (tabs: Overview, Climbing, Hiking,
+Walking (steps goal + walks), Cycling). The older one-page version is still published at
+https://claude.ai/artifact/UUhT8epo8bSEZUvUMwhe35, but it no longer receives syncs.
 
-Repository: https://github.com/kzumrad/activity-dashboard (private). Every dashboard change and every sync is committed there, with the page database exported to `data/`.
+Repository: https://github.com/kzumrad/activity-dashboard (private). Every dashboard change and every sync is committed there.
 
 ## Data
 - Source: COROS watch (APEX 4) via the COROS connector. History starts 5 Aug 2026.
-- Page database: `feeds/activities` holds all non-climbing activities (one doc, `items` array); `sessions/<labelId>` holds each climbing session with per-route height, time, HR, grade and rope style; `feeds/steps` holds daily steps (`days` array of {d, steps}) and the step `goal` (10,000).
+- The files in `data/` **are** the dashboard's data (not a backup any more):
+  - `data/activities.json`: all non-climbing activities (`items` array) and `syncedAt`.
+  - `data/climbing-sessions/<labelId>.json`: one climbing session with per-route height, time, HR, grade and rope style.
+  - `data/steps.json`: daily steps (`days` array of {d, steps}), the step `goal` (10,000) and `syncedAt`.
+- Files are written with keys sorted, a one-space indent and no final newline (as `lib/data-files.js` does), so diffs stay small.
 - Climbing grades are stored in UIAA; the page converts to French or US for display.
+- Grades and rope styles logged on the Climbing tab are written straight into the session files.
 
 ## Climbing grades: the workaround
 COROS does not pass per-route grades or lead vs top rope through the connector or FIT files (only the session's hardest grade). But the session's **training note** does come through (getActivityDetail → "Workout Note").
@@ -18,14 +25,16 @@ Convention:
 - Grades already logged on the dashboard are never overwritten; if a note disagrees with the dashboard or the route count doesn't match the watch, ask.
 
 ## On "sync my activities"
-1. querySportRecords from the last synced date to today (all sports).
-2. New climbs (800): getActivityDetail (hardest grade, note) + queryActivityLapData (routes = laps with elevation gain ≥ 3 m); create `sessions/<labelId>`; fill grades from the note where present.
+Work in this repository, in a Claude Code session with the COROS connector on.
+1. querySportRecords from `syncedAt` in `data/activities.json` to today (all sports).
+2. New climbs (800): getActivityDetail (hardest grade, note) + queryActivityLapData (routes = laps with elevation gain ≥ 3 m); create `data/climbing-sessions/<labelId>.json` with `source: "coros"`; fill grades from the note where present.
 3. New hikes: getActivityDetail for elevation gain/loss.
-4. Append everything else to `feeds/activities` and update `syncedAt`.
-5. queryDailyHealthData for the days since the last sync; update `feeds/steps` (replace today's partial value).
-6. Export the database to `data/` and commit with the code.
+4. Add everything else to `items` in `data/activities.json` and update `syncedAt`.
+5. queryDailyHealthData for the days since the last sync; update `data/steps.json` (replace today's partial value) and its `syncedAt`.
+6. Run `npm test`, check the dashboard, and commit the data changes.
 
 ## Later
 - Recovery tab (sleep, resting HR, HRV, training load).
 - Mobility is currently recorded as Pilates; possibly a custom "Mobility" sport mode later.
 - The step goal can't be set on the watch: COROS daily goals are only active calories and exercise time.
+- Supabase (login and a database) if logging grades from a phone becomes important; see Pocket Plan's ROADMAP.md for the same plan.
