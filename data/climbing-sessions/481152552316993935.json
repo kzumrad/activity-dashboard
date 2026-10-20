@@ -1,0 +1,16 @@
+{
+ "date": "2026-10-19",
+ "duration": "5:49",
+ "hardest": "IV+",
+ "routes": [
+  {
+   "grade": "IV+",
+   "height": 15.0,
+   "hr": 112,
+   "rope": "lead",
+   "secs": 258
+  }
+ ],
+ "source": "coros",
+ "start": 1792427057
+}
