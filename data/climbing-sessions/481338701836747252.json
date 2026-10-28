@@ -1,0 +1,23 @@
+{
+ "date": "2026-10-27",
+ "duration": "52:50",
+ "hardest": "VI+",
+ "routes": [
+  {
+   "grade": null,
+   "height": 14.1,
+   "hr": 113,
+   "rope": null,
+   "secs": 340
+  },
+  {
+   "grade": null,
+   "height": 16.5,
+   "hr": 126,
+   "rope": null,
+   "secs": 370
+  }
+ ],
+ "source": "coros",
+ "start": 1793123211
+}
